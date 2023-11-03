@@ -39,7 +39,7 @@ public class PermissionController {
      * @return 某个角色的权限列表
      */
     @ApiOperation("查看某个角色的权限列表")
-    @GetMapping("toAssign/${roleId}")
+    @GetMapping("toAssign/{roleId}")
     public Result list(@PathVariable Long roleId) {
         List<Permission> list = permissionService.queryByRoleId(roleId);
         return Result.ok(list);

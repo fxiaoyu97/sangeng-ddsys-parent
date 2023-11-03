@@ -33,6 +33,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DdsysException.class)
     @ResponseBody
     public Result error(final DdsysException e) {
-        return Result.fail(null);
+        return Result.build(null, e.getCode(), e.getMessage());
     }
 }
