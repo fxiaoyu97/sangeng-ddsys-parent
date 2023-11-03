@@ -1,5 +1,12 @@
 package com.sangeng.ddsys.acl.controller;
 
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sangeng.ddsys.acl.service.AdminService;
@@ -8,14 +15,9 @@ import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.common.utils.MD5;
 import com.sangeng.ddsys.model.acl.Admin;
 import com.sangeng.ddsys.vo.acl.AdminQueryVo;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author: calos
@@ -27,16 +29,25 @@ import java.util.Map;
 @CrossOrigin
 public class AdminController {
     @Autowired
-    public AdminService adminService;
+    private AdminService adminService;
 
     @Autowired
-    public RoleService roleService;
+    private RoleService roleService;
+
+    // 为用户进行角色分配
+    @ApiOperation("为用户进行角色分配")
+    @PostMapping("doAssign")
+    public Result doAssign(@RequestParam Long adminId, @RequestParam Long[] roleId) {
+        roleService.saveAdminRole(adminId, roleId);
+        return Result.ok(null);
+    }
 
     // 获取所有角色和根据用户id获取角色
     @ApiOperation("获取用户角色")
     @GetMapping("/toAssign/{adminId}")
     public Result toAssign(@PathVariable Long adminId) {
         Map<String, Object> result = roleService.getRoleByAdminId(adminId);
+        return Result.ok(result);
     }
 
     // 查询用户，条件分页查询

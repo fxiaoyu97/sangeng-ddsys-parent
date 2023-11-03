@@ -1,17 +1,19 @@
 package com.sangeng.ddsys.acl.controller;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sangeng.ddsys.acl.service.RoleService;
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.acl.Role;
 import com.sangeng.ddsys.vo.acl.RoleQueryVo;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * @author: calos
@@ -25,20 +27,19 @@ import java.util.List;
 public class RoleController {
 
     @Autowired
-    public RoleService roleService;
+    private RoleService roleService;
 
     /**
      * 角色条件分页查询
      *
-     * @param current     当前页
-     * @param limit       每页数量
+     * @param current 当前页
+     * @param limit 每页数量
      * @param roleQueryVo 查询条件
      * @return 查询结果
      */
     @ApiOperation("角色条件分页查询")
     @GetMapping("{current}/{limit}")
-    public Result pageList(@PathVariable final Long current, @PathVariable final Long limit,
-        final RoleQueryVo roleQueryVo) {
+    public Result pageList(@PathVariable final Long current, @PathVariable final Long limit, RoleQueryVo roleQueryVo) {
         // 1、创建page对象，传递当前页记录数
         // current 当前页
         // limit 每页显示记录数
@@ -96,8 +97,7 @@ public class RoleController {
     }
 
     /**
-     * 批量删除角色
-     * json数组[1,2,3]对应 java的list集合
+     * 批量删除角色 json数组[1,2,3]对应 java的list集合
      *
      * @param idList
      * @return
