@@ -23,7 +23,7 @@ import com.sangeng.ddsys.vo.sys.RegionWareQueryVo;
  * @since 2023-11-03
  */
 @Service
-public class RegionWareServiceImp extends ServiceImpl<RegionWareMapper, RegionWare> implements RegionWareService {
+public class RegionWareServiceImpl extends ServiceImpl<RegionWareMapper, RegionWare> implements RegionWareService {
     @Override
     public IPage<RegionWare> selectPageRegionWare(Page<RegionWare> regionWarePage,
         RegionWareQueryVo regionWareQueryVo) {

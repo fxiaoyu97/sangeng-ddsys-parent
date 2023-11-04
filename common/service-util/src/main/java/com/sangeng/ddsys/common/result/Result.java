@@ -68,6 +68,15 @@ public class Result<T> {
         return build(data, ResultCodeEnum.SUCCESS);
     }
 
+    /**
+     * 成功的方法
+     *
+     * @return
+     */
+    public static <T> Result<T> ok() {
+        return build(null, ResultCodeEnum.SUCCESS);
+    }
+
     // 失败的方法
     public static <T> Result<T> fail(final T data) {
         return build(data, ResultCodeEnum.FAIL);

@@ -16,3 +16,8 @@ spring:
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8
+aliyun:
+  endpoint: oss-cn-guangzhou.aliyuncs.com
+  keyid: LTAI5tCYVzcTBNBALg1hwSCQ
+  keysecret: mTzbPFSaJfSzco2uFpQBDtB3KUn8yg
+  bucketname: sangeng-ddsys

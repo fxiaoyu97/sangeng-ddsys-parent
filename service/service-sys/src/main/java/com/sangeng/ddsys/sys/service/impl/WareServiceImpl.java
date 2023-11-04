@@ -16,6 +16,6 @@ import com.sangeng.ddsys.sys.service.WareService;
  * @since 2023-11-03
  */
 @Service
-public class WareServiceImp extends ServiceImpl<WareMapper, Ware> implements WareService {
+public class WareServiceImpl extends ServiceImpl<WareMapper, Ware> implements WareService {
 
 }

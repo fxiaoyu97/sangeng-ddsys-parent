@@ -19,7 +19,7 @@ import com.sangeng.ddsys.sys.service.RegionService;
  * @since 2023-11-03
  */
 @Service
-public class RegionServiceImp extends ServiceImpl<RegionMapper, Region> implements RegionService {
+public class RegionServiceImpl extends ServiceImpl<RegionMapper, Region> implements RegionService {
     @Override
     public List<Region> findRegionByKeyword(String keyword) {
         LambdaQueryWrapper<Region> queryWrapper = new LambdaQueryWrapper<>();
