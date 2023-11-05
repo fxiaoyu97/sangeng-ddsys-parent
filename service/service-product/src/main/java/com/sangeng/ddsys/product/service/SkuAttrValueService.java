@@ -1,5 +1,7 @@
 package com.sangeng.ddsys.product.service;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sangeng.ddsys.model.product.SkuAttrValue;
 
@@ -13,4 +15,5 @@ import com.sangeng.ddsys.model.product.SkuAttrValue;
  */
 public interface SkuAttrValueService extends IService<SkuAttrValue> {
 
+    List<SkuAttrValue> findBySkuId(Long id);
 }

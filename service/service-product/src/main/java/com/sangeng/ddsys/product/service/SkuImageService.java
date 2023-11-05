@@ -1,5 +1,7 @@
 package com.sangeng.ddsys.product.service;
 
+import java.util.List;
+
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sangeng.ddsys.model.product.SkuImage;
 
@@ -13,4 +15,5 @@ import com.sangeng.ddsys.model.product.SkuImage;
  */
 public interface SkuImageService extends IService<SkuImage> {
 
+    List<SkuImage> findBySkuId(Long id);
 }

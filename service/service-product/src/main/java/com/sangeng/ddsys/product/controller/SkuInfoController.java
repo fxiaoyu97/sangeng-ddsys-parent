@@ -1,5 +1,7 @@
 package com.sangeng.ddsys.product.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +49,65 @@ public class SkuInfoController {
     @PostMapping("save")
     public Result save(@RequestBody SkuInfoVo skuInfoVo) {
         skuInfoService.saveSkuInfo(skuInfoVo);
+        return Result.ok();
+    }
+
+    @ApiOperation(value = "获取")
+    @GetMapping("get/{id}")
+    public Result<SkuInfoVo> get(@PathVariable Long id) {
+        SkuInfoVo skuInfoVo = skuInfoService.getSkuInfoVo(id);
+        return Result.ok(skuInfoVo);
+    }
+
+    @ApiOperation(value = "修改")
+    @PutMapping("update")
+    public Result updateById(@RequestBody SkuInfoVo skuInfoVo) {
+        skuInfoService.updateSkuInfo(skuInfoVo);
+        return Result.ok();
+    }
+
+    @ApiOperation(value = "删除")
+    @DeleteMapping("remove/{id}")
+    public Result remove(@PathVariable Long id) {
+        skuInfoService.removeById(id);
+        return Result.ok();
+    }
+
+    @ApiOperation(value = "根据id列表删除")
+    @DeleteMapping("batchRemove")
+    public Result batchRemove(@RequestBody List<Long> idList) {
+        skuInfoService.removeByIds(idList);
+        return Result.ok();
+    }
+
+    /**
+     * 商品审核
+     * 
+     * @param skuId
+     * @return
+     */
+    @GetMapping("check/{skuId}/{status}")
+    public Result check(@PathVariable("skuId") Long skuId, @PathVariable("status") Integer status) {
+        skuInfoService.check(skuId, status);
+        return Result.ok();
+    }
+
+    /**
+     * 商品上架
+     * 
+     * @param skuId
+     * @return
+     */
+    @GetMapping("publish/{skuId}/{status}")
+    public Result publish(@PathVariable("skuId") Long skuId, @PathVariable("status") Integer status) {
+        skuInfoService.publish(skuId, status);
+        return Result.ok();
+    }
+
+    // 新人专享
+    @GetMapping("isNewPerson/{skuId}/{status}")
+    public Result isNewPerson(@PathVariable("skuId") Long skuId, @PathVariable("status") Integer status) {
+        skuInfoService.isNewPerson(skuId, status);
         return Result.ok();
     }
 }

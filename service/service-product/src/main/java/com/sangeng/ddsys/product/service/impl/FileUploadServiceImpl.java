@@ -2,7 +2,9 @@ package com.sangeng.ddsys.product.service.impl;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.UUID;
 
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +43,12 @@ public class FileUploadServiceImpl implements FileUploadService {
         // CredentialsProviderFactory.newEnvironmentVariableCredentialsProvider();
         // 填写Object完整路径，完整路径中不能包含Bucket名称，例如exampledir/exampleobject.txt。
         String objectName = file.getOriginalFilename();
+        String uuid = UUID.randomUUID().toString().replaceAll("-", "");
+        objectName = uuid + objectName;
+
+        // 对上传文件进行分组，根据当前年/月/日
+        String currentDateTime = new DateTime().toString("yyyy/MM/dd");
+        objectName = currentDateTime + "/" + objectName;
 
         // 创建OSSClient实例。
         // OSS ossClient = new OSSClientBuilder().build(endpoint, credentialsProvider);
@@ -57,6 +65,7 @@ public class FileUploadServiceImpl implements FileUploadService {
             System.out.println(result.getResponse().getStatusCode());
             System.out.println(result.getResponse().getErrorResponseAsString());
             System.out.println(result.getResponse().getUri());
+            return result.getResponse().getUri();
         } catch (OSSException oe) {
             System.out.println("Caught an OSSException, which means your request made it to OSS, "
                 + "but was rejected with an error response for some reason.");
