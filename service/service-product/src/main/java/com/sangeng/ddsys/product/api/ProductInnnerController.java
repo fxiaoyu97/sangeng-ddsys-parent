@@ -1,15 +1,16 @@
 package com.sangeng.ddsys.product.api;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
 import com.sangeng.ddsys.model.product.Category;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.product.service.CategoryService;
 import com.sangeng.ddsys.product.service.SkuInfoService;
+
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 /**
  * @author: calos
@@ -35,5 +36,17 @@ public class ProductInnnerController {
     @GetMapping("inner/getSkuInfo/{skuId}")
     public SkuInfo getSkuInfo(@PathVariable("skuId") Long skuId) {
         return skuInfoService.getById(skuId);
+    }
+
+    @ApiOperation(value = "批量获取sku信息")
+    @PostMapping("inner/findSkuInfoList")
+    public List<SkuInfo> findSkuInfoList(@RequestBody List<Long> skuIdList) {
+        return skuInfoService.findSkuInfoList(skuIdList);
+    }
+
+    @ApiOperation(value = "根据关键字获取sku列表")
+    @GetMapping("inner/findSkuInfoByKeyword/{keyword}")
+    public List<SkuInfo> findSkuInfoByKeyword(@PathVariable("keyword") String keyword) {
+        return skuInfoService.findSkuInfoByKeyword(keyword);
     }
 }

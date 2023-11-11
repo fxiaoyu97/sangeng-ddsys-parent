@@ -17,6 +17,8 @@ import com.sangeng.ddsys.model.product.SkuAttrValue;
 import com.sangeng.ddsys.model.product.SkuImage;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.model.product.SkuPoster;
+import com.sangeng.ddsys.mq.constant.MqConst;
+import com.sangeng.ddsys.mq.service.RabbitService;
 import com.sangeng.ddsys.product.mapper.SkuInfoMapper;
 import com.sangeng.ddsys.product.service.SkuAttrValueService;
 import com.sangeng.ddsys.product.service.SkuImageService;
@@ -43,6 +45,9 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo> impl
 
     @Autowired
     private SkuAttrValueService skuAttrValueService;
+
+    @Autowired
+    private RabbitService rabbitService;
 
     @Override
     public IPage<SkuInfo> selectPage(Page<SkuInfo> pageParam, SkuInfoQueryVo skuInfoQueryVo) {
@@ -176,13 +181,15 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo> impl
             skuInfoUp.setId(skuId);
             skuInfoUp.setPublishStatus(1);
             baseMapper.updateById(skuInfoUp);
-            // TODO 商品上架 后续会完善：发送mq消息更新es数据
+            // 商品上架 发送mq消息更新es数据
+            rabbitService.sendMessage(MqConst.EXCHANGE_GOODS_DIRECT, MqConst.ROUTING_GOODS_UPPER, skuId);
         } else {
             SkuInfo skuInfoUp = new SkuInfo();
             skuInfoUp.setId(skuId);
             skuInfoUp.setPublishStatus(0);
             baseMapper.updateById(skuInfoUp);
-            // TODO 商品下架 后续会完善：发送mq消息更新es数据
+            // 商品下架 发送mq消息更新es数据
+            rabbitService.sendMessage(MqConst.EXCHANGE_GOODS_DIRECT, MqConst.ROUTING_GOODS_LOWER, skuId);
         }
     }
 
@@ -192,5 +199,19 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoMapper, SkuInfo> impl
         skuInfoUp.setId(skuId);
         skuInfoUp.setIsNewPerson(status);
         baseMapper.updateById(skuInfoUp);
+    }
+
+    // 批量获取sku信息
+    @Override
+    public List<SkuInfo> findSkuInfoList(List<Long> skuIdList) {
+        return this.listByIds(skuIdList);
+    }
+
+    // 根据关键字获取sku列表
+    @Override
+    public List<SkuInfo> findSkuInfoByKeyword(String keyword) {
+        LambdaQueryWrapper<SkuInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.like(SkuInfo::getSkuName, keyword);
+        return baseMapper.selectList(queryWrapper);
     }
 }

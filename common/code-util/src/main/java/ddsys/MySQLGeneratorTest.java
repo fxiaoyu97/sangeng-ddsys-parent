@@ -18,13 +18,13 @@ public class MySQLGeneratorTest {
     /**
      * 文件路径
      */
-    public static final String path = "D:\\IDEAProjects\\sangeng-ddsys-parent\\service\\service-product\\src\\main\\";
+    public static final String path = "D:\\IDEAProjects\\sangeng-ddsys-parent\\service\\service-activity\\src\\main\\";
 
     /**
      * 数据源配置
      */
     public static final DataSourceConfig DATA_SOURCE_CONFIG =
-        new DataSourceConfig.Builder("jdbc:mysql://127.0.0.1:3306/shequ-product?characterEncoding=utf-8&useSSL=false",
+        new DataSourceConfig.Builder("jdbc:mysql://127.0.0.1:3306/shequ-activity?characterEncoding=utf-8&useSSL=false",
             "root", "123456").build();
 
     /**
@@ -44,7 +44,7 @@ public class MySQLGeneratorTest {
      */
     public static final PackageConfig PACKAGE_CONFIG = new PackageConfig.Builder() // 包配置
         .parent("com.sangeng.ddsys") // 父包名 默认值:com.baomidou
-        .moduleName("product") // 父包模块名 默认值:无
+        .moduleName("activity") // 父包模块名 默认值:无
         .entity("model") // Entity 包名 默认值:entity
         .service("service") // Service 包名 默认值:service
         .serviceImpl("service.impl") // Service Impl 包名 默认值:service.impl
@@ -62,17 +62,17 @@ public class MySQLGeneratorTest {
         // .enableSkipView() // 开启跳过视图 默认值:false
         // .disableSqlFilter() // 禁用 sql 过滤 默认值:true，语法不能支持使用 sql 过滤表的话，可以考虑关闭此开关
         // .likeTable(new LikeTable("USER")) // likeTable(LikeTable) 模糊表匹配(sql 过滤) likeTable 与 notLikeTable 只能配置一项
-        .addInclude("attr.*", "category", "sku_.*") // 增加表匹配(内存过滤)
+        .addInclude("activity_.*", "coupon_.*") // 增加表匹配(内存过滤)
         // .addTablePrefix("t_", "c_") // 增加过滤表前缀
         // .addFieldSuffix("_flag") // 增加过滤表后缀
         .entityBuilder() // Entity 策略配置
-        .enableFileOverride() // 覆盖已有文件
+        // .enableFileOverride() // 覆盖已有文件
         .enableLombok() // 开启 lombok 模型
         // .logicDeleteColumnName("is_deleted") // 逻辑删除字段名(数据库字段)
         .naming(NamingStrategy.underline_to_camel) // 数据库表映射到实体的命名策略,默认下划线转驼峰命名:NamingStrategy.underline_to_camel
         .columnNaming(NamingStrategy.underline_to_camel) // 数据库表字段映射到实体的命名策略 默认为 null，未指定按照 naming 执行
         .controllerBuilder() // Controller 策略配置
-        .enableFileOverride() // 覆盖已有文件
+        // .enableFileOverride() // 覆盖已有文件
         .enableRestStyle() // 开启生成@RestController 控制器 默认值:false
         .enableHyphenStyle() // 开启驼峰转连字符 默认值:false
         .serviceBuilder() // Service 策略配置

@@ -16,6 +16,7 @@
         <module>common-util</module>
         <module>service-util</module>
         <module>code-util</module>
+        <module>rabbit-util</module>
     </modules>
 
     <dependencies>
