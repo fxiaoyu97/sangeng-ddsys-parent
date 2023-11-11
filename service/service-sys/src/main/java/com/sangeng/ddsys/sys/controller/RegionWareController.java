@@ -1,17 +1,15 @@
 package com.sangeng.ddsys.sys.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.sys.RegionWare;
 import com.sangeng.ddsys.sys.service.RegionWareService;
 import com.sangeng.ddsys.vo.sys.RegionWareQueryVo;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * <p>
@@ -24,7 +22,6 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "开通区域接口")
 @RestController
 @RequestMapping("/admin/sys/regionWare")
-@CrossOrigin
 public class RegionWareController {
 
     @Autowired
@@ -41,7 +38,7 @@ public class RegionWareController {
 
     /**
      * 添加开通区域
-     * 
+     *
      * @param regionWare 区域仓库信息
      * @return 添加结果
      */

@@ -17,8 +17,8 @@ import com.sangeng.ddsys.vo.product.CategoryQueryVo;
 public interface CategoryService extends IService<Category> {
     /**
      * 商品分类分页列表
-     * 
-     * @param pageParam 分页参数
+     *
+     * @param pageParam       分页参数
      * @param categoryQueryVo 查询参数
      * @return 查询结果
      */
@@ -26,7 +26,7 @@ public interface CategoryService extends IService<Category> {
 
     /**
      * 查询所有商品分类
-     * 
+     *
      * @return 查询结果
      */
     Object findAllList();

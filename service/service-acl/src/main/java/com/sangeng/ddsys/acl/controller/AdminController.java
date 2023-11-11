@@ -1,12 +1,5 @@
 package com.sangeng.ddsys.acl.controller;
 
-import java.util.List;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sangeng.ddsys.acl.service.AdminService;
@@ -15,9 +8,14 @@ import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.common.utils.MD5;
 import com.sangeng.ddsys.model.acl.Admin;
 import com.sangeng.ddsys.vo.acl.AdminQueryVo;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author: calos
@@ -26,7 +24,6 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "用户接口")
 @RestController
 @RequestMapping("/admin/acl/user")
-@CrossOrigin
 public class AdminController {
     @Autowired
     private AdminService adminService;

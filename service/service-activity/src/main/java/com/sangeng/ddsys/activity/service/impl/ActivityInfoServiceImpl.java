@@ -1,14 +1,5 @@
 package com.sangeng.ddsys.activity.service.impl;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -24,6 +15,15 @@ import com.sangeng.ddsys.model.activity.ActivityRule;
 import com.sangeng.ddsys.model.activity.ActivitySku;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.vo.activity.ActivityRuleVo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -101,19 +101,21 @@ public class ActivityInfoServiceImpl extends ServiceImpl<ActivityInfoMapper, Act
     }
 
     @Override
-    public Object findSkuInfoByKeyword(String keyword) {
+    public List<SkuInfo> findSkuInfoByKeyword(String keyword) {
         // 1、根据关键字查询sku匹配内容列表
         // service-product模块创建接口， 根据关键字查询sku匹配内容列表
         // service-activity远程调用得到sku内容列表
         List<SkuInfo> skuInfoList = productFeignClient.findSkuInfoByKeyword(keyword);
-        List<Long> skuIdList = skuInfoList.stream().map(SkuInfo::getId).collect(Collectors.toList());
-
         List<SkuInfo> notExistSkuInfoList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(skuInfoList)) {
+            return notExistSkuInfoList;
+        }
+
+        List<Long> skuIdList = skuInfoList.stream().map(SkuInfo::getId).collect(Collectors.toList());
         // 已经存在的skuId，一个sku只能参加一个促销活动，所以存在的得排除
         List<Long> existSkuIdList = baseMapper.selectExistSkuIdList(skuIdList);
-        String existSkuIdString = "," + StringUtils.join(existSkuIdList.toArray(), ",") + ",";
         for (SkuInfo skuInfo : skuInfoList) {
-            if (existSkuIdString.indexOf("," + skuInfo.getId() + ",") == -1) {
+            if (!existSkuIdList.contains(skuInfo.getId())) {
                 notExistSkuInfoList.add(skuInfo);
             }
         }

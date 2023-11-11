@@ -1,19 +1,17 @@
 package com.sangeng.ddsys.acl.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sangeng.ddsys.acl.service.RoleService;
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.acl.Role;
 import com.sangeng.ddsys.vo.acl.RoleQueryVo;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author: calos
@@ -23,7 +21,6 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "角色接口")
 @RestController
 @RequestMapping("/admin/acl/role")
-@CrossOrigin
 public class RoleController {
 
     @Autowired
@@ -32,8 +29,8 @@ public class RoleController {
     /**
      * 角色条件分页查询
      *
-     * @param current 当前页
-     * @param limit 每页数量
+     * @param current     当前页
+     * @param limit       每页数量
      * @param roleQueryVo 查询条件
      * @return 查询结果
      */

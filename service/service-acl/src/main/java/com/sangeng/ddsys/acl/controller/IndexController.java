@@ -1,14 +1,15 @@
 package com.sangeng.ddsys.acl.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
-import org.springframework.web.bind.annotation.*;
-
 import com.sangeng.ddsys.common.result.Result;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author: calos
@@ -18,11 +19,10 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "登录接口")
 @RestController
 @RequestMapping("/admin/acl/index")
-@CrossOrigin
 public class IndexController {
     /**
      * 1、请求登陆的login
-     * 
+     *
      * @return token
      */
     @ApiOperation("登录")
@@ -35,7 +35,7 @@ public class IndexController {
 
     /**
      * 获取用户信息
-     * 
+     *
      * @return 用户信息
      */
     @ApiOperation("获取信息")
@@ -49,7 +49,7 @@ public class IndexController {
 
     /**
      * 退出
-     * 
+     *
      * @return result
      */
     @ApiOperation("登出")

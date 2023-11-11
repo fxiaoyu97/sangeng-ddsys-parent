@@ -1,20 +1,18 @@
 package com.sangeng.ddsys.product.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.product.Category;
 import com.sangeng.ddsys.product.service.CategoryService;
 import com.sangeng.ddsys.vo.product.CategoryQueryVo;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <p>
@@ -27,7 +25,6 @@ import io.swagger.annotations.ApiParam;
 @Api(value = "Category管理", tags = "商品分类管理")
 @RestController
 @RequestMapping("/admin/product/category")
-@CrossOrigin
 public class CategoryController {
 
     @Autowired

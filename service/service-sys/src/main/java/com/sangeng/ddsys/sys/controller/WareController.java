@@ -1,19 +1,16 @@
 package com.sangeng.ddsys.sys.controller;
 
-import java.util.List;
-
+import com.sangeng.ddsys.common.result.Result;
+import com.sangeng.ddsys.model.sys.Ware;
+import com.sangeng.ddsys.sys.service.WareService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.sangeng.ddsys.common.result.Result;
-import com.sangeng.ddsys.model.sys.Ware;
-import com.sangeng.ddsys.sys.service.WareService;
-
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import java.util.List;
 
 /**
  * <p>
@@ -26,7 +23,6 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "仓库管理接口")
 @RestController
 @RequestMapping("/admin/sys/ware")
-@CrossOrigin
 public class WareController {
     @Autowired
     private WareService wareService;

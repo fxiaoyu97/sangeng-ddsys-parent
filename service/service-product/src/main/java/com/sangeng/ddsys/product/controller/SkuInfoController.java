@@ -1,10 +1,5 @@
 package com.sangeng.ddsys.product.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.sangeng.ddsys.common.result.Result;
@@ -12,10 +7,13 @@ import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.product.service.SkuInfoService;
 import com.sangeng.ddsys.vo.product.SkuInfoQueryVo;
 import com.sangeng.ddsys.vo.product.SkuInfoVo;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <p>
@@ -28,7 +26,6 @@ import io.swagger.annotations.ApiParam;
 @Api(value = "SkuInfo管理", tags = "商品Sku管理")
 @RestController
 @RequestMapping(value = "/admin/product/skuInfo")
-@CrossOrigin
 public class SkuInfoController {
 
     @Autowired
@@ -82,7 +79,7 @@ public class SkuInfoController {
 
     /**
      * 商品审核
-     * 
+     *
      * @param skuId
      * @return
      */
@@ -94,7 +91,7 @@ public class SkuInfoController {
 
     /**
      * 商品上架
-     * 
+     *
      * @param skuId
      * @return
      */

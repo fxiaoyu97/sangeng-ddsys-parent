@@ -1,16 +1,14 @@
 package com.sangeng.ddsys.acl.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.sangeng.ddsys.acl.service.PermissionService;
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.acl.Permission;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author: calos
@@ -20,7 +18,6 @@ import io.swagger.annotations.ApiOperation;
 @Api(tags = "菜单管理")
 @RestController
 @RequestMapping("/admin/acl/permission")
-@CrossOrigin
 public class PermissionController {
     @Autowired
     private PermissionService permissionService;
@@ -35,7 +32,7 @@ public class PermissionController {
 
     /**
      * 查看某个角色的权限列表
-     * 
+     *
      * @return 某个角色的权限列表
      */
     @ApiOperation("查看某个角色的权限列表")

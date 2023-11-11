@@ -1,17 +1,15 @@
 package com.sangeng.ddsys.product.controller;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.product.Attr;
 import com.sangeng.ddsys.product.service.AttrService;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * <p>
@@ -24,15 +22,14 @@ import io.swagger.annotations.ApiParam;
 @Api(value = "Attr管理", tags = "平台属性管理")
 @RestController
 @RequestMapping(value = "/admin/product/attr")
-@CrossOrigin
 public class AttrController {
     @Autowired
     private AttrService attrService;
 
     @ApiOperation(value = "获取列表")
     @GetMapping("{attrGroupId}")
-    public Result
-        index(@ApiParam(name = "attrGroupId", value = "分组id", required = true) @PathVariable Long attrGroupId) {
+    public Result index(
+        @ApiParam(name = "attrGroupId", value = "分组id", required = true) @PathVariable Long attrGroupId) {
         return Result.ok(attrService.findByAttrGroupId(attrGroupId));
     }
 

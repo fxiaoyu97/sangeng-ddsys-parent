@@ -1,16 +1,14 @@
 package com.sangeng.ddsys.product.api;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.sangeng.ddsys.model.product.Category;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.product.service.CategoryService;
 import com.sangeng.ddsys.product.service.SkuInfoService;
-
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author: calos
@@ -48,5 +46,11 @@ public class ProductInnnerController {
     @GetMapping("inner/findSkuInfoByKeyword/{keyword}")
     public List<SkuInfo> findSkuInfoByKeyword(@PathVariable("keyword") String keyword) {
         return skuInfoService.findSkuInfoByKeyword(keyword);
+    }
+
+    @ApiOperation(value = "批量获取分类信息")
+    @PostMapping("inner/findCategoryList")
+    public List<Category> findCategoryList(@RequestBody List<Long> categoryIdList) {
+        return categoryService.listByIds(categoryIdList);
     }
 }

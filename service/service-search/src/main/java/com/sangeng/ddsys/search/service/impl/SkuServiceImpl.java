@@ -53,7 +53,7 @@ public class SkuServiceImpl implements SkuService {
             skuEs.setPerLimit(skuInfo.getPerLimit());
         } else {
             //TODO 待完善-秒杀商品
-    
+
         }
         // 3、调用方法添加ES
         SkuEs save = skuEsRepository.save(skuEs);
