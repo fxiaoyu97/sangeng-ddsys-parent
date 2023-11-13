@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -89,5 +90,10 @@ public class WeixinApiController {
                 TimeUnit.DAYS);
 
         // 8 需要数据封装到map返回
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("user", user);
+        map.put("token", token);
+        map.put("leaderAddressVo", leaderAddressVo);
+        return Result.ok(map);
     }
 }
