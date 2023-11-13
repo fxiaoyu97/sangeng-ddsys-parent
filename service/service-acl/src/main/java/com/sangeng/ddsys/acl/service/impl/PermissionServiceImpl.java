@@ -1,11 +1,5 @@
 package com.sangeng.ddsys.acl.service.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sangeng.ddsys.acl.mapper.PermissionMapper;
@@ -13,6 +7,11 @@ import com.sangeng.ddsys.acl.service.PermissionService;
 import com.sangeng.ddsys.acl.service.RolePermissionService;
 import com.sangeng.ddsys.model.acl.Permission;
 import com.sangeng.ddsys.model.acl.RolePermission;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author: calos
@@ -37,14 +36,15 @@ public class PermissionServiceImpl extends ServiceImpl<PermissionMapper, Permiss
     @Override
     public void removeChildById(Long id) {
         ArrayList<Long> idList = new ArrayList<>();
+        idList.add(id);
         this.getAllPermissionIds(id, idList);
         baseMapper.deleteBatchIds(idList);
     }
 
     /**
      * 递归查找当前菜单下的所有子菜单
-     * 
-     * @param id 当前菜单id
+     *
+     * @param id     当前菜单id
      * @param idList 存放所有的菜单id
      */
     private void getAllPermissionIds(Long id, List<Long> idList) {
