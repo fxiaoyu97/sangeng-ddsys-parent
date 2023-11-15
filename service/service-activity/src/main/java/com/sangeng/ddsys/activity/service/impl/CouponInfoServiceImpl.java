@@ -1,5 +1,15 @@
 package com.sangeng.ddsys.activity.service.impl;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -15,14 +25,6 @@ import com.sangeng.ddsys.model.activity.CouponRange;
 import com.sangeng.ddsys.model.product.Category;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.vo.activity.CouponRuleVo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -42,7 +44,7 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
 
     @Override
     public IPage<CouponInfo> selectPage(Page<CouponInfo> pageParam) {
-        //  构造排序条件
+        // 构造排序条件
         QueryWrapper<CouponInfo> queryWrapper = new QueryWrapper<>();
         queryWrapper.orderByDesc("id");
         IPage<CouponInfo> page = baseMapper.selectPage(pageParam, queryWrapper);
@@ -52,7 +54,7 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
                 item.setRangeTypeString(item.getRangeType().getComment());
             }
         });
-        //  返回数据集合
+        // 返回数据集合
         return page;
     }
 
@@ -96,14 +98,14 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
 
     @Override
     public void saveCouponRule(CouponRuleVo couponRuleVo) {
-          /*
+        /*
         优惠券couponInfo 与 couponRange 要一起操作：先删除couponRange ，更新couponInfo ，再新增couponRange ！
-         */
+        */
         QueryWrapper<CouponRange> couponRangeQueryWrapper = new QueryWrapper<>();
         couponRangeQueryWrapper.eq("coupon_id", couponRuleVo.getCouponId());
         couponRangeMapper.delete(couponRangeQueryWrapper);
 
-        //  更新数据
+        // 更新数据
         CouponInfo couponInfo = this.getById(couponRuleVo.getCouponId());
         // couponInfo.setCouponType();
         couponInfo.setRangeType(couponRuleVo.getRangeType());
@@ -114,20 +116,28 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
 
         baseMapper.updateById(couponInfo);
 
-        //  插入优惠券的规则 couponRangeList
+        // 插入优惠券的规则 couponRangeList
         List<CouponRange> couponRangeList = couponRuleVo.getCouponRangeList();
         for (CouponRange couponRange : couponRangeList) {
             couponRange.setCouponId(couponRuleVo.getCouponId());
-            //  插入数据
+            // 插入数据
             couponRangeMapper.insert(couponRange);
         }
     }
 
     @Override
     public List<CouponInfo> findCouponByKeyword(String keyword) {
-        //  模糊查询
+        // 模糊查询
         QueryWrapper<CouponInfo> couponInfoQueryWrapper = new QueryWrapper<>();
         couponInfoQueryWrapper.like("coupon_name", keyword);
         return baseMapper.selectList(couponInfoQueryWrapper);
+    }
+
+    @Override
+    public List<CouponInfo> findCouponInfoList(Long skuId, Long userId) {
+        SkuInfo skuInfo = productFeignClient.getSkuInfo(skuId);
+        if (null == skuInfo)
+            return new ArrayList<>();
+        return baseMapper.selectCouponInfoList(skuInfo.getId(), skuInfo.getCategoryId(), userId);
     }
 }

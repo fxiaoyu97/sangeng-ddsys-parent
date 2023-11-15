@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Param;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sangeng.ddsys.model.activity.ActivityInfo;
+import com.sangeng.ddsys.model.activity.ActivityRule;
 
 /**
  * <p>
@@ -18,4 +19,7 @@ import com.sangeng.ddsys.model.activity.ActivityInfo;
 public interface ActivityInfoMapper extends BaseMapper<ActivityInfo> {
 
     List<Long> selectExistSkuIdList(@Param("skuIdList") List<Long> skuIdList);
+
+    List<ActivityRule> selectActivityRuleList(@Param("skuId") Long skuId);
+
 }

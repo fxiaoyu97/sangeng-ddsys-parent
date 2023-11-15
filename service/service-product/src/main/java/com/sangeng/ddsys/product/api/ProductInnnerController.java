@@ -1,14 +1,17 @@
 package com.sangeng.ddsys.product.api;
 
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
 import com.sangeng.ddsys.model.product.Category;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.product.service.CategoryService;
 import com.sangeng.ddsys.product.service.SkuInfoService;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import com.sangeng.ddsys.vo.product.SkuInfoVo;
 
-import java.util.List;
+import io.swagger.annotations.ApiOperation;
 
 /**
  * @author: calos
@@ -52,5 +55,23 @@ public class ProductInnnerController {
     @PostMapping("inner/findCategoryList")
     public List<Category> findCategoryList(@RequestBody List<Long> categoryIdList) {
         return categoryService.listByIds(categoryIdList);
+    }
+
+    @ApiOperation(value = "获取分类信息")
+    @GetMapping("inner/findAllCategoryList")
+    public List<Category> findAllCategoryList() {
+        return categoryService.findAllList();
+    }
+
+    @ApiOperation(value = "获取新人专享")
+    @GetMapping("inner/findNewPersonSkuInfoList")
+    public List<SkuInfo> findNewPersonSkuInfoList() {
+        return skuInfoService.findNewPersonList();
+    }
+
+    @ApiOperation(value = "根据skuId获取sku信息")
+    @GetMapping("inner/getSkuInfoVo/{skuId}")
+    public SkuInfoVo getSkuInfoVo(@PathVariable("skuId") Long skuId) {
+        return skuInfoService.getSkuInfoVo(skuId);
     }
 }

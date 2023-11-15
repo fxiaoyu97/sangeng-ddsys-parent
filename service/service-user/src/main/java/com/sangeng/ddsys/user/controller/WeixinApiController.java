@@ -1,6 +1,14 @@
 package com.sangeng.ddsys.user.controller;
 
+import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.web.bind.annotation.*;
+
 import com.alibaba.fastjson.JSONObject;
+import com.sangeng.ddsys.common.auth.AuthContextHolder;
 import com.sangeng.ddsys.common.constant.RedisConst;
 import com.sangeng.ddsys.common.exception.DdsysException;
 import com.sangeng.ddsys.common.result.Result;
@@ -8,21 +16,13 @@ import com.sangeng.ddsys.common.result.ResultCodeEnum;
 import com.sangeng.ddsys.common.utils.JwtHelper;
 import com.sangeng.ddsys.enums.UserType;
 import com.sangeng.ddsys.model.user.User;
-import com.sangeng.ddsys.user.controller.service.UserService;
+import com.sangeng.ddsys.user.service.UserService;
 import com.sangeng.ddsys.user.utils.ConstantPropertiesUtil;
 import com.sangeng.ddsys.user.utils.HttpClientUtils;
 import com.sangeng.ddsys.vo.user.LeaderAddressVo;
 import com.sangeng.ddsys.vo.user.UserLoginVo;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
-import java.util.concurrent.TimeUnit;
+import io.swagger.annotations.ApiOperation;
 
 /**
  * @author: calos
@@ -85,9 +85,8 @@ public class WeixinApiController {
 
         // 7 获取当前登录用户信息，放到Redis中，设置有效时间
         UserLoginVo userLoginVo = userService.getUserLoginVo(user.getId());
-        redisTemplate.opsForValue()
-            .set(RedisConst.USER_LOGIN_KEY_PREFIX + user.getId(), userLoginVo, RedisConst.USERKEY_TIMEOUT,
-                TimeUnit.DAYS);
+        redisTemplate.opsForValue().set(RedisConst.USER_LOGIN_KEY_PREFIX + user.getId(), userLoginVo,
+            RedisConst.USERKEY_TIMEOUT, TimeUnit.DAYS);
 
         // 8 需要数据封装到map返回
         HashMap<String, Object> map = new HashMap<>();
@@ -95,5 +94,16 @@ public class WeixinApiController {
         map.put("token", token);
         map.put("leaderAddressVo", leaderAddressVo);
         return Result.ok(map);
+    }
+
+    @PostMapping("/auth/updateUser")
+    @ApiOperation(value = "更新用户昵称与头像")
+    public Result updateUser(@RequestBody User user) {
+        User user1 = userService.getById(AuthContextHolder.getUserId());
+        // 把昵称更新为微信用户
+        user1.setNickName(user.getNickName().replaceAll("[ue000-uefff]", "*"));
+        user1.setPhotoUrl(user.getPhotoUrl());
+        userService.updateById(user1);
+        return Result.ok(null);
     }
 }

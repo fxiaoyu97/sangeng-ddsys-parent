@@ -1,14 +1,16 @@
 package com.sangeng.ddsys.client.product;
 
-import com.sangeng.ddsys.model.product.Category;
-import com.sangeng.ddsys.model.product.SkuInfo;
+import java.util.List;
+
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.List;
+import com.sangeng.ddsys.model.product.Category;
+import com.sangeng.ddsys.model.product.SkuInfo;
+import com.sangeng.ddsys.vo.product.SkuInfoVo;
 
 /**
  * @author: calos
@@ -48,4 +50,23 @@ public interface ProductFeignClient {
      */
     @PostMapping("/api/product/inner/findCategoryList")
     List<Category> findCategoryList(@RequestBody List<Long> categoryIdList);
+
+    /**
+     * 获取分类信息
+     * 
+     * @return
+     */
+    @GetMapping("/api/product/inner/findAllCategoryList")
+    List<Category> findAllCategoryList();
+
+    /**
+     * 获取新人专享
+     * 
+     * @return
+     */
+    @GetMapping("/api/product/inner/findNewPersonSkuInfoList")
+    List<SkuInfo> findNewPersonSkuInfoList();
+
+    @GetMapping("/api/product/inner/getSkuInfoVo/{skuId}")
+    SkuInfoVo getSkuInfoVo(@PathVariable("skuId") Long skuId);
 }

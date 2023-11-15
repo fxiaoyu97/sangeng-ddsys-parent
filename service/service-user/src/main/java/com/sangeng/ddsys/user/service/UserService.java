@@ -1,4 +1,4 @@
-package com.sangeng.ddsys.user.controller.service;
+package com.sangeng.ddsys.user.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sangeng.ddsys.model.user.User;
