@@ -1,15 +1,18 @@
 package com.sangeng.ddsys.activity.service;
 
-import java.util.List;
-import java.util.Map;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sangeng.ddsys.model.activity.ActivityInfo;
 import com.sangeng.ddsys.model.activity.ActivityRule;
+import com.sangeng.ddsys.model.order.CartInfo;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.vo.activity.ActivityRuleVo;
+import com.sangeng.ddsys.vo.order.CartInfoVo;
+import com.sangeng.ddsys.vo.order.OrderConfirmVo;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -33,11 +36,15 @@ public interface ActivityInfoService extends IService<ActivityInfo> {
 
     /**
      * 根据skuId获取促销规则信息
-     * 
+     *
      * @param skuId
      * @return
      */
     List<ActivityRule> findActivityRule(Long skuId);
 
     Map<String, Object> findActivityAndCoupon(Long skuId, Long userId);
+
+    OrderConfirmVo findCartActivityAndCoupon(List<CartInfo> cartInfoList, Long userId);
+
+    List<CartInfoVo> findCartActivityList(List<CartInfo> cartInfoList);
 }

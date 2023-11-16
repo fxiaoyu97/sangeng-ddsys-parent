@@ -1,11 +1,10 @@
 package com.sangeng.ddsys.activity.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Param;
-
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sangeng.ddsys.model.activity.CouponInfo;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -18,7 +17,7 @@ import com.sangeng.ddsys.model.activity.CouponInfo;
 public interface CouponInfoMapper extends BaseMapper<CouponInfo> {
     /**
      * sku优惠券
-     * 
+     *
      * @param skuId
      * @param categoryId
      * @param userId
@@ -26,4 +25,6 @@ public interface CouponInfoMapper extends BaseMapper<CouponInfo> {
      */
     List<CouponInfo> selectCouponInfoList(@Param("skuId") Long skuId, @Param("categoryId") Long categoryId,
         @Param("userId") Long userId);
+
+    List<CouponInfo> selectCartCouponInfoList(Long userId);
 }

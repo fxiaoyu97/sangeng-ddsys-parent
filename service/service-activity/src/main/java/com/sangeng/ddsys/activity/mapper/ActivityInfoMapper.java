@@ -1,12 +1,12 @@
 package com.sangeng.ddsys.activity.mapper;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Param;
-
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.sangeng.ddsys.model.activity.ActivityInfo;
 import com.sangeng.ddsys.model.activity.ActivityRule;
+import com.sangeng.ddsys.model.activity.ActivitySku;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * <p>
@@ -22,4 +22,11 @@ public interface ActivityInfoMapper extends BaseMapper<ActivityInfo> {
 
     List<ActivityRule> selectActivityRuleList(@Param("skuId") Long skuId);
 
+    /**
+     * 根据skuIdList查询对应的活动列表
+     *
+     * @param skuIdList
+     * @return
+     */
+    List<ActivitySku> selectCartActivityList(@Param("skuIdList") List<Long> skuIdList);
 }

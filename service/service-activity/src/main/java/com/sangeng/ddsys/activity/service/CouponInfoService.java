@@ -1,13 +1,14 @@
 package com.sangeng.ddsys.activity.service;
 
-import java.util.List;
-import java.util.Map;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sangeng.ddsys.model.activity.CouponInfo;
+import com.sangeng.ddsys.model.order.CartInfo;
 import com.sangeng.ddsys.vo.activity.CouponRuleVo;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * <p>
@@ -33,4 +34,5 @@ public interface CouponInfoService extends IService<CouponInfo> {
 
     List<CouponInfo> findCouponInfoList(Long skuId, Long userId);
 
+    List<CouponInfo> findCartCouponInfo(List<CartInfo> cartInfoList, Long userId);
 }
