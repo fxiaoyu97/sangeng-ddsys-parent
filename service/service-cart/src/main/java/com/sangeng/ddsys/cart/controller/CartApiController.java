@@ -1,18 +1,22 @@
 package com.sangeng.ddsys.cart.controller;
 
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import com.sangeng.ddsys.activity.ActivityFeignClient;
 import com.sangeng.ddsys.cart.service.CartInfoService;
 import com.sangeng.ddsys.common.auth.AuthContextHolder;
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.order.CartInfo;
 import com.sangeng.ddsys.vo.order.OrderConfirmVo;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import java.util.List;
 
 /**
  * @author: calos
@@ -104,5 +108,41 @@ public class CartApiController {
 
         OrderConfirmVo orderTradeVo = activityFeignClient.findCartActivityAndCoupon(cartInfoList, userId);
         return Result.ok(orderTradeVo);
+    }
+
+    /**
+     * 更新选中状态
+     *
+     * @param skuId
+     * @param isChecked
+     * @return
+     */
+    @GetMapping("checkCart/{skuId}/{isChecked}")
+    public Result checkCart(@PathVariable(value = "skuId") Long skuId,
+        @PathVariable(value = "isChecked") Integer isChecked) {
+        // 获取用户Id
+        Long userId = AuthContextHolder.getUserId();
+        // 调用更新方法
+        cartInfoService.checkCart(userId, isChecked, skuId);
+        return Result.ok();
+    }
+
+    @GetMapping("checkAllCart/{isChecked}")
+    public Result checkAllCart(@PathVariable(value = "isChecked") Integer isChecked) {
+        // 获取用户Id
+        Long userId = AuthContextHolder.getUserId();
+        // 调用更新方法
+        cartInfoService.checkAllCart(userId, isChecked);
+        return Result.ok();
+    }
+
+    @ApiOperation(value = "批量选择购物车")
+    @PostMapping("batchCheckCart/{isChecked}")
+    public Result batchCheckCart(@RequestBody List<Long> skuIdList,
+        @PathVariable(value = "isChecked") Integer isChecked) {
+        // 如何获取userId
+        Long userId = AuthContextHolder.getUserId();
+        cartInfoService.batchCheckCart(skuIdList, userId, isChecked);
+        return Result.ok();
     }
 }
