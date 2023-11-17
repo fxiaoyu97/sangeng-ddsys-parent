@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sangeng.ddsys.activity.ActivityFeignClient;
 import com.sangeng.ddsys.client.cart.CartFeignClient;
@@ -34,6 +35,7 @@ import com.sangeng.ddsys.model.order.OrderItem;
 import com.sangeng.ddsys.mq.constant.MqConst;
 import com.sangeng.ddsys.mq.service.RabbitService;
 import com.sangeng.ddsys.order.mapper.OrderInfoMapper;
+import com.sangeng.ddsys.order.mapper.OrderItemMapper;
 import com.sangeng.ddsys.order.service.OrderInfoService;
 import com.sangeng.ddsys.order.service.OrderItemService;
 import com.sangeng.ddsys.vo.order.CartInfoVo;
@@ -72,6 +74,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     @Autowired
     private RabbitService rabbitService;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
 
     @Override
     public OrderConfirmVo confirmOrder() {
@@ -294,7 +299,14 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     @Override
     public OrderInfo getOrderInfoById(Long orderId) {
-        return null;
+        // 根据orderId查询订单基本信息
+        OrderInfo orderInfo = baseMapper.selectById(orderId);
+        // 根据orderId查询订单所有订单项list列表
+        List<OrderItem> orderItemList = orderItemMapper
+            .selectList(new LambdaQueryWrapper<OrderItem>().eq(OrderItem::getOrderId, orderInfo.getId()));
+        // 查询所有订单项封装到每个订单对象里面
+        orderInfo.setOrderItemList(orderItemList);
+        return orderInfo;
     }
 
     private BigDecimal computeTotalAmount(List<CartInfo> cartInfoList) {
