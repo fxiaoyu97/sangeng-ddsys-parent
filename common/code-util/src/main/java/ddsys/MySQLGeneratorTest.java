@@ -1,15 +1,15 @@
 package ddsys;
 
-import java.util.Collections;
-
 import com.baomidou.mybatisplus.generator.AutoGenerator;
 import com.baomidou.mybatisplus.generator.config.*;
 import com.baomidou.mybatisplus.generator.config.rules.DateType;
 import com.baomidou.mybatisplus.generator.config.rules.NamingStrategy;
 
+import java.util.Collections;
+
 /**
  * MySQL 代码生成
- * 
+ *
  * @author: calos
  * @version: 1.0.0
  * @createTime: 2023/11/3 16:53
@@ -18,13 +18,13 @@ public class MySQLGeneratorTest {
     /**
      * 文件路径
      */
-    public static final String path = "D:\\IDEAProjects\\sangeng-ddsys-parent\\service\\service-activity\\src\\main\\";
+    public static final String path = "D:\\IDEAProjects\\sangeng-ddsys-parent\\service\\service-order\\src\\main\\";
 
     /**
      * 数据源配置
      */
     public static final DataSourceConfig DATA_SOURCE_CONFIG =
-        new DataSourceConfig.Builder("jdbc:mysql://127.0.0.1:3306/shequ-activity?characterEncoding=utf-8&useSSL=false",
+        new DataSourceConfig.Builder("jdbc:mysql://127.0.0.1:3306/shequ-order?characterEncoding=utf-8&useSSL=false",
             "root", "123456").build();
 
     /**
@@ -44,7 +44,7 @@ public class MySQLGeneratorTest {
      */
     public static final PackageConfig PACKAGE_CONFIG = new PackageConfig.Builder() // 包配置
         .parent("com.sangeng.ddsys") // 父包名 默认值:com.baomidou
-        .moduleName("activity") // 父包模块名 默认值:无
+        .moduleName("order") // 父包模块名 默认值:无
         .entity("model") // Entity 包名 默认值:entity
         .service("service") // Service 包名 默认值:service
         .serviceImpl("service.impl") // Service Impl 包名 默认值:service.impl
@@ -62,7 +62,7 @@ public class MySQLGeneratorTest {
         // .enableSkipView() // 开启跳过视图 默认值:false
         // .disableSqlFilter() // 禁用 sql 过滤 默认值:true，语法不能支持使用 sql 过滤表的话，可以考虑关闭此开关
         // .likeTable(new LikeTable("USER")) // likeTable(LikeTable) 模糊表匹配(sql 过滤) likeTable 与 notLikeTable 只能配置一项
-        .addInclude("activity_.*", "coupon_.*") // 增加表匹配(内存过滤)
+        .addInclude("order_info", "order_item") // 增加表匹配(内存过滤)
         // .addTablePrefix("t_", "c_") // 增加过滤表前缀
         // .addFieldSuffix("_flag") // 增加过滤表后缀
         .entityBuilder() // Entity 策略配置

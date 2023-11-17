@@ -1,13 +1,16 @@
 package com.sangeng.ddsys.activity.api;
 
 import com.sangeng.ddsys.activity.service.ActivityInfoService;
+import com.sangeng.ddsys.activity.service.CouponInfoService;
+import com.sangeng.ddsys.model.activity.CouponInfo;
 import com.sangeng.ddsys.model.order.CartInfo;
+import com.sangeng.ddsys.vo.order.CartInfoVo;
 import com.sangeng.ddsys.vo.order.OrderConfirmVo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
@@ -20,8 +23,11 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/activity")
 public class ActivityInfoApiController {
-    @Resource
+    @Autowired
     private ActivityInfoService activityInfoService;
+
+    @Autowired
+    private CouponInfoService couponInfoService;
 
     @ApiOperation(value = "根据skuId列表获取促销信息")
     @PostMapping("inner/findActivity")
@@ -40,5 +46,17 @@ public class ActivityInfoApiController {
     public OrderConfirmVo findCartActivityAndCoupon(@RequestBody List<CartInfo> cartInfoList,
         @PathVariable("userId") Long userId) {
         return activityInfoService.findCartActivityAndCoupon(cartInfoList, userId);
+    }
+
+    @ApiOperation(value = "获取购物车满足条件的促销与优惠券信息")
+    @PostMapping("inner/findCartActivityList")
+    public List<CartInfoVo> findCartActivityList(@RequestBody List<CartInfo> cartInfoList) {
+        return activityInfoService.findCartActivityList(cartInfoList);
+    }
+
+    @PostMapping(value = "inner/findRangeSkuIdList/{couponId}")
+    public CouponInfo findRangeSkuIdList(@RequestBody List<CartInfo> cartInfoList,
+        @PathVariable("couponId") Long couponId) {
+        return couponInfoService.findRangeSkuIdList(cartInfoList, couponId);
     }
 }

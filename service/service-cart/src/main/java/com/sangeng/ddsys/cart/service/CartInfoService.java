@@ -1,8 +1,8 @@
 package com.sangeng.ddsys.cart.service;
 
-import java.util.List;
-
 import com.sangeng.ddsys.model.order.CartInfo;
+
+import java.util.List;
 
 /**
  * @author: calos
@@ -25,4 +25,6 @@ public interface CartInfoService {
     void checkAllCart(Long userId, Integer isChecked);
 
     void batchCheckCart(List<Long> skuIdList, Long userId, Integer isChecked);
+
+    List<CartInfo> getCartCheckedList(Long userId);
 }

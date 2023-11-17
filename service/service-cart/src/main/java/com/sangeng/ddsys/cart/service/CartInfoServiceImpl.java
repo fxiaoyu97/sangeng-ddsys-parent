@@ -1,15 +1,5 @@
 package com.sangeng.ddsys.cart.service;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
 import com.sangeng.ddsys.client.product.ProductFeignClient;
 import com.sangeng.ddsys.common.constant.RedisConst;
 import com.sangeng.ddsys.common.exception.DdsysException;
@@ -17,6 +7,16 @@ import com.sangeng.ddsys.common.result.ResultCodeEnum;
 import com.sangeng.ddsys.enums.SkuType;
 import com.sangeng.ddsys.model.order.CartInfo;
 import com.sangeng.ddsys.model.product.SkuInfo;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundHashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author: calos
@@ -203,5 +203,13 @@ public class CartInfoServiceImpl implements CartInfoService {
             cartInfo.setIsChecked(isChecked);
             hashOperations.put(cartInfo.getSkuId().toString(), cartInfo);
         });
+    }
+
+    @Override
+    public List<CartInfo> getCartCheckedList(Long userId) {
+        BoundHashOperations<String, String, CartInfo> boundHashOps =
+            this.redisTemplate.boundHashOps(this.getCartKey(userId));
+        return Objects.requireNonNull(boundHashOps.values()).stream()
+            .filter((cartInfo) -> cartInfo.getIsChecked().intValue() == 1).collect(Collectors.toList());
     }
 }

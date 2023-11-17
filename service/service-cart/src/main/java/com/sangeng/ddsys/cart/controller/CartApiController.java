@@ -1,22 +1,19 @@
 package com.sangeng.ddsys.cart.controller;
 
-import java.util.List;
-
-import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.sangeng.ddsys.activity.ActivityFeignClient;
 import com.sangeng.ddsys.cart.service.CartInfoService;
 import com.sangeng.ddsys.common.auth.AuthContextHolder;
 import com.sangeng.ddsys.common.result.Result;
 import com.sangeng.ddsys.model.order.CartInfo;
 import com.sangeng.ddsys.vo.order.OrderConfirmVo;
-
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * @author: calos
@@ -144,5 +141,16 @@ public class CartApiController {
         Long userId = AuthContextHolder.getUserId();
         cartInfoService.batchCheckCart(skuIdList, userId, isChecked);
         return Result.ok();
+    }
+
+    /**
+     * 根据用户Id 查询购物车列表
+     *
+     * @param userId
+     * @return
+     */
+    @GetMapping("inner/getCartCheckedList/{userId}")
+    public List<CartInfo> getCartCheckedList(@PathVariable("userId") Long userId) {
+        return cartInfoService.getCartCheckedList(userId);
     }
 }

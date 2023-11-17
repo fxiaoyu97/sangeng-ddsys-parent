@@ -1,13 +1,14 @@
 package com.sangeng.ddsys.product.service;
 
-import java.util.List;
-
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.vo.product.SkuInfoQueryVo;
 import com.sangeng.ddsys.vo.product.SkuInfoVo;
+import com.sangeng.ddsys.vo.product.SkuStockLockVo;
+
+import java.util.List;
 
 /**
  * <p>
@@ -38,4 +39,6 @@ public interface SkuInfoService extends IService<SkuInfo> {
     List<SkuInfo> findSkuInfoByKeyword(String keyword);
 
     List<SkuInfo> findNewPersonList();
+
+    Boolean checkAndLock(List<SkuStockLockVo> skuStockLockVoList, String orderNo);
 }

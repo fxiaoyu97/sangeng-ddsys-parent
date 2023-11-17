@@ -1,17 +1,16 @@
 package com.sangeng.ddsys.product.api;
 
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-
 import com.sangeng.ddsys.model.product.Category;
 import com.sangeng.ddsys.model.product.SkuInfo;
 import com.sangeng.ddsys.product.service.CategoryService;
 import com.sangeng.ddsys.product.service.SkuInfoService;
 import com.sangeng.ddsys.vo.product.SkuInfoVo;
-
+import com.sangeng.ddsys.vo.product.SkuStockLockVo;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 /**
  * @author: calos
@@ -73,5 +72,11 @@ public class ProductInnnerController {
     @GetMapping("inner/getSkuInfoVo/{skuId}")
     public SkuInfoVo getSkuInfoVo(@PathVariable("skuId") Long skuId) {
         return skuInfoService.getSkuInfoVo(skuId);
+    }
+
+    @ApiOperation(value = "锁定库存")
+    @PostMapping("inner/checkAndLock/{orderNo}")
+    public Boolean checkAndLock(@RequestBody List<SkuStockLockVo> skuStockLockVoList, @PathVariable String orderNo) {
+        return skuInfoService.checkAndLock(skuStockLockVoList, orderNo);
     }
 }

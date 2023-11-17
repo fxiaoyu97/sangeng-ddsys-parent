@@ -1,16 +1,17 @@
 package com.sangeng.ddsys.client.product;
 
-import java.util.List;
-
+import com.sangeng.ddsys.model.product.Category;
+import com.sangeng.ddsys.model.product.SkuInfo;
+import com.sangeng.ddsys.vo.product.SkuInfoVo;
+import com.sangeng.ddsys.vo.product.SkuStockLockVo;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import com.sangeng.ddsys.model.product.Category;
-import com.sangeng.ddsys.model.product.SkuInfo;
-import com.sangeng.ddsys.vo.product.SkuInfoVo;
+import java.util.List;
 
 /**
  * @author: calos
@@ -53,7 +54,7 @@ public interface ProductFeignClient {
 
     /**
      * 获取分类信息
-     * 
+     *
      * @return
      */
     @GetMapping("/api/product/inner/findAllCategoryList")
@@ -61,7 +62,7 @@ public interface ProductFeignClient {
 
     /**
      * 获取新人专享
-     * 
+     *
      * @return
      */
     @GetMapping("/api/product/inner/findNewPersonSkuInfoList")
@@ -69,4 +70,8 @@ public interface ProductFeignClient {
 
     @GetMapping("/api/product/inner/getSkuInfoVo/{skuId}")
     SkuInfoVo getSkuInfoVo(@PathVariable("skuId") Long skuId);
+
+    @ApiOperation(value = "锁定库存")
+    @PostMapping("/api/product/inner/checkAndLock/{orderNo}")
+    Boolean checkAndLock(@RequestBody List<SkuStockLockVo> skuStockLockVoList, @PathVariable String orderNo);
 }
