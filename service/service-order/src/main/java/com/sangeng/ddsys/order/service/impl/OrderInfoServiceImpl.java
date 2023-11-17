@@ -1,5 +1,20 @@
 package com.sangeng.ddsys.order.service.impl;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundHashOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.StringUtils;
+
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sangeng.ddsys.activity.ActivityFeignClient;
 import com.sangeng.ddsys.client.cart.CartFeignClient;
@@ -16,6 +31,8 @@ import com.sangeng.ddsys.model.activity.CouponInfo;
 import com.sangeng.ddsys.model.order.CartInfo;
 import com.sangeng.ddsys.model.order.OrderInfo;
 import com.sangeng.ddsys.model.order.OrderItem;
+import com.sangeng.ddsys.mq.constant.MqConst;
+import com.sangeng.ddsys.mq.service.RabbitService;
 import com.sangeng.ddsys.order.mapper.OrderInfoMapper;
 import com.sangeng.ddsys.order.service.OrderInfoService;
 import com.sangeng.ddsys.order.service.OrderItemService;
@@ -24,20 +41,6 @@ import com.sangeng.ddsys.vo.order.OrderConfirmVo;
 import com.sangeng.ddsys.vo.order.OrderSubmitVo;
 import com.sangeng.ddsys.vo.product.SkuStockLockVo;
 import com.sangeng.ddsys.vo.user.LeaderAddressVo;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.BoundHashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.CollectionUtils;
-import org.springframework.util.StringUtils;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -67,21 +70,24 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     @Autowired
     private OrderItemService orderItemService;
 
+    @Autowired
+    private RabbitService rabbitService;
+
     @Override
     public OrderConfirmVo confirmOrder() {
         // 获取到用户Id
         Long userId = AuthContextHolder.getUserId();
 
-        //获取用户地址
+        // 获取用户地址
         LeaderAddressVo leaderAddressVo = userFeignClient.getUserAddressByUserId(userId);
 
         // 先得到用户想要购买的商品！
         List<CartInfo> cartInfoList = cartFeignClient.getCartCheckedList(userId);
 
         // 防重：生成一个唯一标识，保存到redis中一份
-        String orderNo = System.currentTimeMillis() + "";//IdWorker.getTimeId();
+        String orderNo = System.currentTimeMillis() + "";// IdWorker.getTimeId();
         redisTemplate.opsForValue().set(RedisConst.ORDER_REPEAT + orderNo, orderNo, 24, TimeUnit.HOURS);
-        //获取购物车满足条件的促销与优惠券信息
+        // 获取购物车满足条件的促销与优惠券信息
         OrderConfirmVo orderTradeVo = activityFeignClient.findCartActivityAndCoupon(cartInfoList, userId);
         orderTradeVo.setLeaderAddressVo(leaderAddressVo);
         orderTradeVo.setOrderNo(orderNo);
@@ -134,7 +140,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                 throw new DdsysException(ResultCodeEnum.ORDER_STOCK_FALL);
             }
         }
-/*
+        /*
         //2.2秒杀商品
         List<CartInfo> seckillSkuList =
             cartInfoList.stream().filter(cartInfo -> Objects.equals(cartInfo.getSkuType(),
@@ -157,8 +163,10 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         // 第四步 下单过程，order_info和order_item
         Long orderId = this.saveOrder(orderParamVo, cartInfoList);
 
-        // TODO 完善
-        return null;
+        // 下单完成之后，删除购物车记录
+        // 异步删除购物车中对应的记录。不应该影响下单的整体流程
+        rabbitService.sendMessage(MqConst.EXCHANGE_ORDER_DIRECT, MqConst.ROUTING_DELETE_CART, orderParamVo.getUserId());
+        return orderId;
     }
 
     @Transactional(rollbackFor = {Exception.class})
@@ -234,7 +242,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         orderInfo.setReceiverAddress(leaderAddressVo.getDetailAddress());
         orderInfo.setWareId(cartInfoList.get(0).getWareId());
 
-        //计算订单金额
+        // 计算订单金额
         BigDecimal originalTotalAmount = this.computeTotalAmount(cartInfoList);
         BigDecimal activityAmount = activitySplitAmountMap.get("activity:total");
         if (null == activityAmount) {
@@ -245,26 +253,26 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
             couponAmount = new BigDecimal(0);
         }
         BigDecimal totalAmount = originalTotalAmount.subtract(activityAmount).subtract(couponAmount);
-        //计算订单金额
+        // 计算订单金额
         orderInfo.setOriginalTotalAmount(originalTotalAmount);
         orderInfo.setActivityAmount(activityAmount);
         orderInfo.setCouponAmount(couponAmount);
         orderInfo.setTotalAmount(totalAmount);
 
-        //计算团长佣金
+        // 计算团长佣金
         BigDecimal profitRate = new BigDecimal(0);
         BigDecimal commissionAmount = orderInfo.getTotalAmount().multiply(profitRate);
         orderInfo.setCommissionAmount(commissionAmount);
 
         baseMapper.insert(orderInfo);
 
-        //保存订单项
+        // 保存订单项
         for (OrderItem orderItem : orderItemList) {
             orderItem.setOrderId(orderInfo.getId());
         }
         orderItemService.saveBatch(orderItemList);
 
-        //更新优惠券使用状态
+        // 更新优惠券使用状态
         if (null != orderInfo.getCouponId()) {
             activityFeignClient.updateCouponInfoUseStatus(orderInfo.getCouponId(), userId, orderInfo.getId());
         }
@@ -280,7 +288,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         });
         redisTemplate.expire(orderSkuKey, DateUtil.getCurrentExpireTimes(), TimeUnit.SECONDS);
 
-        //发送消息
+        // 发送消息
         return orderInfo.getId();
     }
 
@@ -299,9 +307,7 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     }
 
     /**
-     * 计算购物项分摊的优惠减少金额
-     * 打折：按折扣分担
-     * 现金：按比例分摊
+     * 计算购物项分摊的优惠减少金额 打折：按折扣分担 现金：按比例分摊
      *
      * @param cartInfoParamList
      * @return
@@ -309,30 +315,30 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
     private Map<String, BigDecimal> computeActivitySplitAmount(List<CartInfo> cartInfoParamList) {
         Map<String, BigDecimal> activitySplitAmountMap = new HashMap<>();
 
-        //促销活动相关信息
+        // 促销活动相关信息
         List<CartInfoVo> cartInfoVoList = activityFeignClient.findCartActivityList(cartInfoParamList);
 
-        //活动总金额
+        // 活动总金额
         BigDecimal activityReduceAmount = new BigDecimal(0);
         if (!CollectionUtils.isEmpty(cartInfoVoList)) {
             for (CartInfoVo cartInfoVo : cartInfoVoList) {
                 ActivityRule activityRule = cartInfoVo.getActivityRule();
                 List<CartInfo> cartInfoList = cartInfoVo.getCartInfoList();
                 if (null != activityRule) {
-                    //优惠金额， 按比例分摊
+                    // 优惠金额， 按比例分摊
                     BigDecimal reduceAmount = activityRule.getReduceAmount();
                     activityReduceAmount = activityReduceAmount.add(reduceAmount);
                     if (cartInfoList.size() == 1) {
                         activitySplitAmountMap.put("activity:" + cartInfoList.get(0).getSkuId(), reduceAmount);
                     } else {
-                        //总金额
+                        // 总金额
                         BigDecimal originalTotalAmount = new BigDecimal(0);
                         for (CartInfo cartInfo : cartInfoList) {
                             BigDecimal skuTotalAmount =
                                 cartInfo.getCartPrice().multiply(new BigDecimal(cartInfo.getSkuNum()));
                             originalTotalAmount = originalTotalAmount.add(skuTotalAmount);
                         }
-                        //记录除最后一项是所有分摊金额， 最后一项=总的 - skuPartReduceAmount
+                        // 记录除最后一项是所有分摊金额， 最后一项=总的 - skuPartReduceAmount
                         BigDecimal skuPartReduceAmount = new BigDecimal(0);
                         if (activityRule.getActivityType() == ActivityType.FULL_REDUCTION) {
                             for (int i = 0, len = cartInfoList.size(); i < len; i++) {
@@ -340,10 +346,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                                 if (i < len - 1) {
                                     BigDecimal skuTotalAmount =
                                         cartInfo.getCartPrice().multiply(new BigDecimal(cartInfo.getSkuNum()));
-                                    //sku分摊金额
-                                    BigDecimal skuReduceAmount =
-                                        skuTotalAmount.divide(originalTotalAmount, 2, RoundingMode.HALF_UP)
-                                            .multiply(reduceAmount);
+                                    // sku分摊金额
+                                    BigDecimal skuReduceAmount = skuTotalAmount
+                                        .divide(originalTotalAmount, 2, RoundingMode.HALF_UP).multiply(reduceAmount);
                                     activitySplitAmountMap.put("activity:" + cartInfo.getSkuId(), skuReduceAmount);
 
                                     skuPartReduceAmount = skuPartReduceAmount.add(skuReduceAmount);
@@ -359,9 +364,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
                                     BigDecimal skuTotalAmount =
                                         cartInfo.getCartPrice().multiply(new BigDecimal(cartInfo.getSkuNum()));
 
-                                    //sku分摊金额
-                                    BigDecimal skuDiscountTotalAmount = skuTotalAmount.multiply(
-                                        activityRule.getBenefitDiscount().divide(new BigDecimal("10")));
+                                    // sku分摊金额
+                                    BigDecimal skuDiscountTotalAmount = skuTotalAmount
+                                        .multiply(activityRule.getBenefitDiscount().divide(new BigDecimal("10")));
                                     BigDecimal skuReduceAmount = skuTotalAmount.subtract(skuDiscountTotalAmount);
                                     activitySplitAmountMap.put("activity:" + cartInfo.getSkuId(), skuReduceAmount);
 
@@ -388,42 +393,42 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         CouponInfo couponInfo = activityFeignClient.findRangeSkuIdList(cartInfoList, couponId);
 
         if (null != couponInfo) {
-            //sku对应的订单明细
+            // sku对应的订单明细
             Map<Long, CartInfo> skuIdToCartInfoMap = new HashMap<>();
             for (CartInfo cartInfo : cartInfoList) {
                 skuIdToCartInfoMap.put(cartInfo.getSkuId(), cartInfo);
             }
-            //优惠券对应的skuId列表
+            // 优惠券对应的skuId列表
             List<Long> skuIdList = couponInfo.getSkuIdList();
             if (CollectionUtils.isEmpty(skuIdList)) {
                 return couponInfoSplitAmountMap;
             }
-            //优惠券优化总金额
+            // 优惠券优化总金额
             BigDecimal reduceAmount = couponInfo.getAmount();
             if (skuIdList.size() == 1) {
-                //sku的优化金额
+                // sku的优化金额
                 couponInfoSplitAmountMap.put("coupon:" + skuIdToCartInfoMap.get(skuIdList.get(0)).getSkuId(),
                     reduceAmount);
             } else {
-                //总金额
+                // 总金额
                 BigDecimal originalTotalAmount = new BigDecimal(0);
                 for (Long skuId : skuIdList) {
                     CartInfo cartInfo = skuIdToCartInfoMap.get(skuId);
                     BigDecimal skuTotalAmount = cartInfo.getCartPrice().multiply(new BigDecimal(cartInfo.getSkuNum()));
                     originalTotalAmount = originalTotalAmount.add(skuTotalAmount);
                 }
-                //记录除最后一项是所有分摊金额， 最后一项=总的 - skuPartReduceAmount
+                // 记录除最后一项是所有分摊金额， 最后一项=总的 - skuPartReduceAmount
                 BigDecimal skuPartReduceAmount = new BigDecimal(0);
-                if (couponInfo.getCouponType() == CouponType.CASH || couponInfo.getCouponType() == CouponType.FULL_REDUCTION) {
+                if (couponInfo.getCouponType() == CouponType.CASH
+                    || couponInfo.getCouponType() == CouponType.FULL_REDUCTION) {
                     for (int i = 0, len = skuIdList.size(); i < len; i++) {
                         CartInfo cartInfo = skuIdToCartInfoMap.get(skuIdList.get(i));
                         if (i < len - 1) {
                             BigDecimal skuTotalAmount =
                                 cartInfo.getCartPrice().multiply(new BigDecimal(cartInfo.getSkuNum()));
-                            //sku分摊金额
-                            BigDecimal skuReduceAmount =
-                                skuTotalAmount.divide(originalTotalAmount, 2, RoundingMode.HALF_UP)
-                                    .multiply(reduceAmount);
+                            // sku分摊金额
+                            BigDecimal skuReduceAmount = skuTotalAmount
+                                .divide(originalTotalAmount, 2, RoundingMode.HALF_UP).multiply(reduceAmount);
                             couponInfoSplitAmountMap.put("coupon:" + cartInfo.getSkuId(), skuReduceAmount);
 
                             skuPartReduceAmount = skuPartReduceAmount.add(skuReduceAmount);

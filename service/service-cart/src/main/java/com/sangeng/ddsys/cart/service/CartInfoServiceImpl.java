@@ -1,12 +1,9 @@
 package com.sangeng.ddsys.cart.service;
 
-import com.sangeng.ddsys.client.product.ProductFeignClient;
-import com.sangeng.ddsys.common.constant.RedisConst;
-import com.sangeng.ddsys.common.exception.DdsysException;
-import com.sangeng.ddsys.common.result.ResultCodeEnum;
-import com.sangeng.ddsys.enums.SkuType;
-import com.sangeng.ddsys.model.order.CartInfo;
-import com.sangeng.ddsys.model.product.SkuInfo;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,9 +11,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+import com.sangeng.ddsys.client.product.ProductFeignClient;
+import com.sangeng.ddsys.common.constant.RedisConst;
+import com.sangeng.ddsys.common.exception.DdsysException;
+import com.sangeng.ddsys.common.result.ResultCodeEnum;
+import com.sangeng.ddsys.enums.SkuType;
+import com.sangeng.ddsys.model.order.CartInfo;
+import com.sangeng.ddsys.model.product.SkuInfo;
 
 /**
  * @author: calos
@@ -211,5 +212,19 @@ public class CartInfoServiceImpl implements CartInfoService {
             this.redisTemplate.boundHashOps(this.getCartKey(userId));
         return Objects.requireNonNull(boundHashOps.values()).stream()
             .filter((cartInfo) -> cartInfo.getIsChecked().intValue() == 1).collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteCartChecked(Long userId) {
+        // 根据userId查询选中购物车记录
+        List<CartInfo> cartInfoList = this.getCartCheckedList(userId);
+        // 查询list数据处理，得到skuId集合
+        List<Long> skuIdList = cartInfoList.stream().map(CartInfo::getSkuId).collect(Collectors.toList());
+        // 构建redis的key，hash类型 key filed-value
+        String cartKey = getCartKey(userId);
+        // 获取缓存对象
+        BoundHashOperations<String, String, CartInfo> hashOperations = redisTemplate.boundHashOps(cartKey);
+        // 根据filed(skuId)删除redis数据
+        skuIdList.forEach(skuId -> hashOperations.delete(skuId.toString()));
     }
 }
