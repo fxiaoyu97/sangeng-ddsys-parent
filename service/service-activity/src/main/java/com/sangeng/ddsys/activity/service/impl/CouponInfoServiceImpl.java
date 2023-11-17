@@ -7,11 +7,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.sangeng.ddsys.activity.mapper.CouponInfoMapper;
 import com.sangeng.ddsys.activity.mapper.CouponRangeMapper;
+import com.sangeng.ddsys.activity.mapper.CouponUseMapper;
 import com.sangeng.ddsys.activity.service.CouponInfoService;
 import com.sangeng.ddsys.client.product.ProductFeignClient;
 import com.sangeng.ddsys.enums.CouponRangeType;
+import com.sangeng.ddsys.enums.CouponStatus;
 import com.sangeng.ddsys.model.activity.CouponInfo;
 import com.sangeng.ddsys.model.activity.CouponRange;
+import com.sangeng.ddsys.model.activity.CouponUse;
 import com.sangeng.ddsys.model.base.BaseEntity;
 import com.sangeng.ddsys.model.order.CartInfo;
 import com.sangeng.ddsys.model.product.Category;
@@ -40,6 +43,9 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
 
     @Autowired
     private ProductFeignClient productFeignClient;
+
+    @Autowired
+    private CouponUseMapper couponUseMapper;
 
     @Override
     public IPage<CouponInfo> selectPage(Page<CouponInfo> pageParam) {
@@ -264,5 +270,18 @@ public class CouponInfoServiceImpl extends ServiceImpl<CouponInfoMapper, CouponI
         List<Long> skuIdList = couponIdToSkuIdMap.entrySet().iterator().next().getValue();
         couponInfo.setSkuIdList(skuIdList);
         return couponInfo;
+    }
+
+    @Override
+    public void updateCouponInfoUseStatus(Long couponId, Long userId, Long orderId) {
+        CouponUse couponUse = new CouponUse();
+        couponUse.setOrderId(orderId);
+        couponUse.setCouponStatus(CouponStatus.USED);
+        couponUse.setUsingTime(new Date());
+
+        QueryWrapper<CouponUse> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("coupon_id", couponId);
+        queryWrapper.eq("user_id", userId);
+        couponUseMapper.update(couponUse, queryWrapper);
     }
 }

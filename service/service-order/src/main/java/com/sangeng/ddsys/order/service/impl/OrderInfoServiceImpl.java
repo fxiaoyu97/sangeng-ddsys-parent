@@ -9,9 +9,8 @@ import com.sangeng.ddsys.common.auth.AuthContextHolder;
 import com.sangeng.ddsys.common.constant.RedisConst;
 import com.sangeng.ddsys.common.exception.DdsysException;
 import com.sangeng.ddsys.common.result.ResultCodeEnum;
-import com.sangeng.ddsys.enums.ActivityType;
-import com.sangeng.ddsys.enums.CouponType;
-import com.sangeng.ddsys.enums.SkuType;
+import com.sangeng.ddsys.common.utils.DateUtil;
+import com.sangeng.ddsys.enums.*;
 import com.sangeng.ddsys.model.activity.ActivityRule;
 import com.sangeng.ddsys.model.activity.CouponInfo;
 import com.sangeng.ddsys.model.order.CartInfo;
@@ -19,15 +18,18 @@ import com.sangeng.ddsys.model.order.OrderInfo;
 import com.sangeng.ddsys.model.order.OrderItem;
 import com.sangeng.ddsys.order.mapper.OrderInfoMapper;
 import com.sangeng.ddsys.order.service.OrderInfoService;
+import com.sangeng.ddsys.order.service.OrderItemService;
 import com.sangeng.ddsys.vo.order.CartInfoVo;
 import com.sangeng.ddsys.vo.order.OrderConfirmVo;
 import com.sangeng.ddsys.vo.order.OrderSubmitVo;
 import com.sangeng.ddsys.vo.product.SkuStockLockVo;
 import com.sangeng.ddsys.vo.user.LeaderAddressVo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
@@ -61,6 +63,9 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
 
     @Autowired
     private ProductFeignClient productFeignClient;
+
+    @Autowired
+    private OrderItemService orderItemService;
 
     @Override
     public OrderConfirmVo confirmOrder() {
@@ -151,10 +156,13 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         }*/
         // 第四步 下单过程，order_info和order_item
         Long orderId = this.saveOrder(orderParamVo, cartInfoList);
+
+        // TODO 完善
         return null;
     }
 
-    private Long saveOrder(OrderSubmitVo orderParamVo, List<CartInfo> cartInfoList) {
+    @Transactional(rollbackFor = {Exception.class})
+    public Long saveOrder(OrderSubmitVo orderParamVo, List<CartInfo> cartInfoList) {
         if (CollectionUtils.isEmpty(cartInfoList)) {
             throw new DdsysException(ResultCodeEnum.DATA_ERROR);
         }
@@ -166,16 +174,114 @@ public class OrderInfoServiceImpl extends ServiceImpl<OrderInfoMapper, OrderInfo
         }
         // 计算金额
         // 营销活动金额
-        Map<String, BigDecimal> activitySplitAmount = this.computeActivitySplitAmount(cartInfoList);
+        Map<String, BigDecimal> activitySplitAmountMap = this.computeActivitySplitAmount(cartInfoList);
         // 优惠券金额
-        Map<String, BigDecimal> couponInfoSplitAmount =
+        Map<String, BigDecimal> couponInfoSplitAmountMap =
             this.computeCouponInfoSplitAmount(cartInfoList, orderParamVo.getCouponId());
         // 封装订单项数据
         List<OrderItem> orderItemList = new ArrayList<>();
         for (CartInfo cartInfo : cartInfoList) {
+            OrderItem orderItem = new OrderItem();
+            orderItem.setId(null);
+            orderItem.setCategoryId(cartInfo.getCategoryId());
+            if (Objects.equals(cartInfo.getSkuType(), SkuType.COMMON.getCode())) {
+                orderItem.setSkuType(SkuType.COMMON);
+            } else {
+                orderItem.setSkuType(SkuType.SECKILL);
+            }
+            orderItem.setSkuId(cartInfo.getSkuId());
+            orderItem.setSkuName(cartInfo.getSkuName());
+            orderItem.setSkuPrice(cartInfo.getCartPrice());
+            orderItem.setImgUrl(cartInfo.getImgUrl());
+            orderItem.setSkuNum(cartInfo.getSkuNum());
+            orderItem.setLeaderId(orderParamVo.getLeaderId());
+            // 促销活动分摊金额
+            BigDecimal splitActivityAmount = activitySplitAmountMap.get("activity:" + orderItem.getSkuId());
+            if (null == splitActivityAmount) {
+                splitActivityAmount = new BigDecimal(0);
+            }
+            orderItem.setSplitActivityAmount(splitActivityAmount);
 
+            // 优惠券分摊金额
+            BigDecimal splitCouponAmount = couponInfoSplitAmountMap.get("coupon:" + orderItem.getSkuId());
+            if (null == splitCouponAmount) {
+                splitCouponAmount = new BigDecimal(0);
+            }
+            orderItem.setSplitCouponAmount(splitCouponAmount);
+            // 优惠前总金额
+            BigDecimal skuTotalAmount = orderItem.getSkuPrice().multiply(new BigDecimal(orderItem.getSkuNum()));
+            // 优惠后的总金额
+            BigDecimal splitTotalAmount = skuTotalAmount.subtract(splitActivityAmount).subtract(splitCouponAmount);
+            orderItem.setSplitTotalAmount(splitTotalAmount);
+            orderItemList.add(orderItem);
         }
-        return null;
+        // 封装订单OrderInfo数据
+        OrderInfo orderInfo = new OrderInfo();
+        orderInfo.setUserId(userId);
+        orderInfo.setOrderNo(orderParamVo.getOrderNo());
+        orderInfo.setOrderStatus(OrderStatus.UNPAID);
+        orderInfo.setProcessStatus(ProcessStatus.UNPAID);
+        orderInfo.setCouponId(orderParamVo.getCouponId());
+        orderInfo.setLeaderId(orderParamVo.getLeaderId());
+        orderInfo.setLeaderName(leaderAddressVo.getLeaderName());
+        orderInfo.setLeaderPhone(leaderAddressVo.getLeaderPhone());
+        orderInfo.setTakeName(leaderAddressVo.getTakeName());
+        orderInfo.setReceiverName(orderParamVo.getReceiverName());
+        orderInfo.setReceiverPhone(orderParamVo.getReceiverPhone());
+        orderInfo.setReceiverProvince(leaderAddressVo.getProvince());
+        orderInfo.setReceiverCity(leaderAddressVo.getCity());
+        orderInfo.setReceiverDistrict(leaderAddressVo.getDistrict());
+        orderInfo.setReceiverAddress(leaderAddressVo.getDetailAddress());
+        orderInfo.setWareId(cartInfoList.get(0).getWareId());
+
+        //计算订单金额
+        BigDecimal originalTotalAmount = this.computeTotalAmount(cartInfoList);
+        BigDecimal activityAmount = activitySplitAmountMap.get("activity:total");
+        if (null == activityAmount) {
+            activityAmount = new BigDecimal(0);
+        }
+        BigDecimal couponAmount = couponInfoSplitAmountMap.get("coupon:total");
+        if (null == couponAmount) {
+            couponAmount = new BigDecimal(0);
+        }
+        BigDecimal totalAmount = originalTotalAmount.subtract(activityAmount).subtract(couponAmount);
+        //计算订单金额
+        orderInfo.setOriginalTotalAmount(originalTotalAmount);
+        orderInfo.setActivityAmount(activityAmount);
+        orderInfo.setCouponAmount(couponAmount);
+        orderInfo.setTotalAmount(totalAmount);
+
+        //计算团长佣金
+        BigDecimal profitRate = new BigDecimal(0);
+        BigDecimal commissionAmount = orderInfo.getTotalAmount().multiply(profitRate);
+        orderInfo.setCommissionAmount(commissionAmount);
+
+        baseMapper.insert(orderInfo);
+
+        //保存订单项
+        for (OrderItem orderItem : orderItemList) {
+            orderItem.setOrderId(orderInfo.getId());
+        }
+        orderItemService.saveBatch(orderItemList);
+
+        //更新优惠券使用状态
+        if (null != orderInfo.getCouponId()) {
+            activityFeignClient.updateCouponInfoUseStatus(orderInfo.getCouponId(), userId, orderInfo.getId());
+        }
+        // 下单成功，记录用户购物商品数量，redis
+        // hash类型，key(userId) - field(skuId) - value(skuNum)
+        String orderSkuKey = RedisConst.ORDER_SKU_MAP + orderParamVo.getUserId();
+        BoundHashOperations<String, String, Integer> hashOperations = redisTemplate.boundHashOps(orderSkuKey);
+        cartInfoList.forEach(cartInfo -> {
+            if (Boolean.TRUE.equals(hashOperations.hasKey(cartInfo.getSkuId().toString()))) {
+                Integer orderSkuNum = hashOperations.get(cartInfo.getSkuId().toString()) + cartInfo.getSkuNum();
+                hashOperations.put(cartInfo.getSkuId().toString(), orderSkuNum);
+            }
+        });
+        redisTemplate.expire(orderSkuKey, DateUtil.getCurrentExpireTimes(), TimeUnit.SECONDS);
+
+        //发送消息
+        return orderInfo.getId();
     }
 
     @Override
